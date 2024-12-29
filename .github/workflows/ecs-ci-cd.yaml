@@ -16,10 +16,10 @@ on:
 env:
   SONAR_PROJECT_KEY: 3-Tier-web-architecture
   SONAR_ORG: ecs-ci-cd
-  AWS_REGION: us-east-1
-  ECS_TASK_DEFINITION: task-web-app
-  ECS_CLUSTER: Full-stack-web-app
-  ECS_SERVICE: web-app-service
+  AWS_REGION: eu-west-1
+  ECS_TASK_DEFINITION: 3-tier-webapp-task
+  ECS_CLUSTER: 3tier-web-app
+  ECS_SERVICE: web-service
 
 jobs:
   sonarcloud:
@@ -37,6 +37,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: https://sonarcloud.io
+          SONAR_SCANNER_OPTS: "-X"
 
   docker-build:
     name: Build Frontend Docker Image
@@ -108,14 +109,15 @@ jobs:
             --network-mode awsvpc \
             --cpu 1024 \
             --memory 3072 \
-            --execution-role-arn arn:aws:iam::429841094792:role/todo-app-role)
+            --execution-role-arn arn:aws:iam::971422716815:role/ecsTaskExecutionRole)
 
           NEW_REVISION=$(echo "$NEW_TASK_DEF" | jq -r '.taskDefinition.revision')
 
           aws ecs update-service \
             --cluster ${{ env.ECS_CLUSTER }} \
             --service ${{ env.ECS_SERVICE }} \
-            --task-definition ${{ env.ECS_TASK_DEFINITION }}:$NEW_REVISION
+            --task-definition ${{ env.ECS_TASK_DEFINITION }}:$NEW_REVISION \
+            --desired-count 1
 
   deploy-prod:
     name: Deploy to Prod
@@ -169,7 +171,7 @@ jobs:
             --network-mode awsvpc \
             --cpu 1024 \
             --memory 3072 \
-            --execution-role-arn arn:aws:iam::429841094792:role/todo-app-role)
+            --execution-role-arn arn:aws:iam::971422716815:role/ecsTaskExecutionRole)
   
           NEW_REVISION=$(echo "$NEW_TASK_DEF" | jq -r '.taskDefinition.revision')
   
@@ -177,4 +179,4 @@ jobs:
             --cluster ${{ env.ECS_CLUSTER }} \
             --service ${{ env.ECS_SERVICE }} \
             --task-definition ${{ env.ECS_TASK_DEFINITION }}:$NEW_REVISION
-	    --desired-count 1
+	          --desired-count 1
