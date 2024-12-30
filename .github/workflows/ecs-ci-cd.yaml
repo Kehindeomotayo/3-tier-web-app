@@ -5,7 +5,7 @@ on:
     branches:
       - dev
       - stage
-    tags: # Triggers deployment to production on tags
+    tags: ## Triggers deployment to production on tags
       - 'v*'
   pull_request:
     types: [opened, synchronize, reopened]
